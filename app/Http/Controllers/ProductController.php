@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\ProductAdded;
 use App\Models\Product;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Http\Resources\ProductCollection;
 use App\Http\Resources\ProductResource;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class ProductController extends Controller
 {
@@ -34,16 +34,20 @@ class ProductController extends Controller
  
 
         if (auth()->user()->products()->save($product))
+        {
+            event(new ProductAdded($product));
             return response()->json([
                 'success' => true,
                 'message' => 'product added successfully',
                 'data' => $product->toArray()
             ]);
-        else
+        }
+        else {
             return response()->json([
                 'success' => false,
                 'message' => 'product can not be added'
             ], 500);
+        }
     }
 
     /**
