@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\PassportAuthController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductsFilterController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -26,4 +27,8 @@ Route::post('login', [PassportAuthController::class, 'login']);
 
 Route::middleware('auth:api')->group(function () {
     Route::resource('products', ProductController::class);
+    Route::get('products/filter/{name}', [ProductsFilterController::class, 'search'])->name('searchProduct');
+    Route::get('user/{id}/produdcts', [ProductsFilterController::class, 'index'])->name('userProducts');
+
+
 });

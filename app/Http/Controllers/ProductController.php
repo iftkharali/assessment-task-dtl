@@ -16,7 +16,8 @@ class ProductController extends Controller
      */
     public function index()
     {
-        $products = auth()->user()->products;
+        //$products = auth()->user()->products;
+        $products = Product::all();
         return response()->json(['success' => true, 'products' => new ProductCollection($products)]);
     }
 
@@ -31,9 +32,7 @@ class ProductController extends Controller
         $product->price = $request->price;
         $product->status = $request->status;
         $product->type = $request->type;
- 
-
-        if (auth()->user()->products()->save($product))
+        if ($product->save())
         {
             event(new ProductAdded($product));
             return response()->json([
@@ -55,7 +54,8 @@ class ProductController extends Controller
      */
     public function show(Product $product) 
     {
-        $product = auth()->user()->products()->find($product);
+       // $product = auth()->user()->products()->find($product);
+        $product = Product::find($product);
         if (!$product) {
             return response()->json([
                 'success' => false,
