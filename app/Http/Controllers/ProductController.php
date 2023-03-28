@@ -8,16 +8,23 @@ use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Http\Resources\ProductCollection;
 use App\Http\Resources\ProductResource;
+use App\Interfaces\ProductRepositoryInterface;
 
 class ProductController extends Controller
 {
+
+    private ProductRepositoryInterface $productRepository;
+
+    public function __construct(ProductRepositoryInterface $productRepository) 
+    {
+        $this->productRepository = $productRepository;
+    }
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        //$products = auth()->user()->products;
-        $products = Product::all();
+        $products = $this->productRepository->getAll();
         return response()->json(['success' => true, 'products' => new ProductCollection($products)]);
     }
 
@@ -27,12 +34,9 @@ class ProductController extends Controller
      */
     public function store(StoreProductRequest $request)
     {
-        $product = new Product();
-        $product->name = $request->name;
-        $product->price = $request->price;
-        $product->status = $request->status;
-        $product->type = $request->type;
-        if ($product->save())
+        $input = $request->except('_token');
+        $product = $this->productRepository->create($input);
+        if ($product)
         {
             event(new ProductAdded($product));
             return response()->json([
@@ -54,8 +58,7 @@ class ProductController extends Controller
      */
     public function show(Product $product) 
     {
-       // $product = auth()->user()->products()->find($product);
-        $product = Product::find($product);
+        $product = $this->productRepository->getById($product->id);
         if (!$product) {
             return response()->json([
                 'success' => false,
@@ -64,7 +67,7 @@ class ProductController extends Controller
         }
         return response()->json([
             'success' => true,
-            'data' => new ProductCollection($product)
+            'data' => $product
         ], 400);
     }
 
@@ -80,9 +83,8 @@ class ProductController extends Controller
                 'message' => 'Product not found'
             ], 400);
         }
- 
-        $updated = $product->fill($request->all())->save();
- 
+
+        $updated = $this->productRepository->update($product->id, $request->except(['_token','_method'])); 
         if ($updated)
             return response()->json([
                 'success' => true,
@@ -107,7 +109,9 @@ class ProductController extends Controller
             ], 400);
         }
  
-        if ($product->delete()) {
+        $productDeleted = $this->productRepository->destroy($product->id);
+
+        if ($productDeleted) {
             return response()->json([
                 'success' => true,
                 'message' => 'Product deleted successfully'

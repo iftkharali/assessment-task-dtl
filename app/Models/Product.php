@@ -7,6 +7,7 @@ use App\Enums\ProductTypeEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Auth;
 
 class Product extends Model
 {
@@ -31,9 +32,7 @@ class Product extends Model
     protected static function booted()
     {
         static::creating(function ($product) {
-           // $product->user_id = Auth::id();
-           $product->user_id = 1;
-
+            $product->user_id = Auth::id();
         });
     }
 
